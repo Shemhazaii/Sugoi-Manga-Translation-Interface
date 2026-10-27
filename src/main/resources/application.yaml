@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: translation-service
+  servlet:
+    multipart:
+      max-file-size: 2GB
+      max-request-size: 2GB
+
+
+  profiles:
+    default: local
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:30432}/${DB_NAME:translation_service}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:Dimas123}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+sugoi:
+  websocket-url: ${SUGOI_WS_URL:ws://localhost:30765}
+  connect-timeout: 5s
+  initialization:
+    backend: offline
+    source-lang: ja
+    target-lang: en
+    translator-timeout: 30s
+    manga-timeout: 180s
+
+translation:
+  queue:
+    poll-interval: 1000
+  single:
+    timeout:5m
+  batch:
+    timeout: 30m
+  storage:
+    root: ${TRANSLATION_STORAGE_ROOT:/mnt/sugoi-files}
+  cleanup:
+    retention: 24h
+    interval: 10m
