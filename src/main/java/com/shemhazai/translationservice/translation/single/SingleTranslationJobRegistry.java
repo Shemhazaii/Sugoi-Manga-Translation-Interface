@@ -1,6 +1,7 @@
 package com.shemhazai.translationservice.translation.single;
 
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -216,6 +217,7 @@ public class SingleTranslationJobRegistry {
                 || status == SingleTranslationJobStatus.FAILED;
     }
 
+    @Getter
     public static class TranslationJobException
             extends RuntimeException {
 
@@ -229,9 +231,6 @@ public class SingleTranslationJobRegistry {
             this.jobId = jobId;
         }
 
-        public String getJobId() {
-            return jobId;
-        }
     }
 
 

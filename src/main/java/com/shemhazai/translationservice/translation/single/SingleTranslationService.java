@@ -91,10 +91,7 @@ public class SingleTranslationService {
 
             log.info("Translation job queued: {}", jobId);
             return job;
-        } catch (IOException | IllegalStateException exception) {
-            deleteInputQuietly(inputPath);
-            throw exception;
-        } catch (RuntimeException exception) {
+        } catch (IOException | RuntimeException exception) {
             deleteInputQuietly(inputPath);
             throw exception;
         }

@@ -2,6 +2,7 @@ package com.shemhazai.translationservice.sugoi;
 
 import com.shemhazai.translationservice.config.SugoiInitializationProperties;
 import com.shemhazai.translationservice.config.SugoiProperties;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -33,6 +34,8 @@ public class SugoiInitializationService {
     private final AtomicBoolean started = new AtomicBoolean(false);
 
     private volatile boolean initializationComplete = false;
+
+    @Getter
     private volatile String failureReason;
 
     public SugoiInitializationService(
@@ -51,8 +54,6 @@ public class SugoiInitializationService {
             return;
         }
 
-        // Jalankan di background agar aplikasi tetap bisa melayani
-        // endpoint readiness ketika Sugoi sedang loading atau gagal.
         CompletableFuture.runAsync(this::initializeSafely);
     }
 
@@ -473,10 +474,6 @@ public class SugoiInitializationService {
                 && properties.getBackend().equals(
                 manga.path("translator_backend").asString()
         );
-    }
-
-    public String getFailureReason() {
-        return failureReason;
     }
 
     private String rootMessage(Throwable exception) {

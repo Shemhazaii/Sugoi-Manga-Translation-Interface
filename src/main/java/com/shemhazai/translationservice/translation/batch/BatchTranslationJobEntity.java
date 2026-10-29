@@ -1,9 +1,13 @@
 package com.shemhazai.translationservice.translation.batch;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 
+@Setter
+@Getter
 @Entity
 @Table(
         name = "batch_translation_jobs",
@@ -87,69 +91,4 @@ public class BatchTranslationJobEntity {
     protected BatchTranslationJobEntity() {
     }
 
-    public String getJobId() { return jobId; }
-    public void setJobId(String value) { this.jobId = value; }
-
-    public String getOriginalFilename() { return originalFilename; }
-    public void setOriginalFilename(String value) { this.originalFilename = value; }
-
-    public String getSourceLang() { return sourceLang; }
-    public void setSourceLang(String value) { this.sourceLang = value; }
-
-    public String getTargetLang() { return targetLang; }
-    public void setTargetLang(String value) { this.targetLang = value; }
-
-    public String getTranslator() { return translator; }
-    public void setTranslator(String value) { this.translator = value; }
-
-    public BatchTranslationStatus getStatus() { return status; }
-    public void setStatus(BatchTranslationStatus value) { this.status = value; }
-
-    public String getInputArchive() { return inputArchive; }
-    public void setInputArchive(String value) { this.inputArchive = value; }
-
-    public String getInputFolder() { return inputFolder; }
-    public void setInputFolder(String value) { this.inputFolder = value; }
-
-    public String getOutputFolder() { return outputFolder; }
-    public void setOutputFolder(String value) { this.outputFolder = value; }
-
-    public String getResultArchive() { return resultArchive; }
-    public void setResultArchive(String value) { this.resultArchive = value; }
-
-    public int getTotalImages() { return totalImages; }
-    public void setTotalImages(int value) { this.totalImages = value; }
-
-    public int getCompletedImages() { return completedImages; }
-    public void setCompletedImages(int value) { this.completedImages = value; }
-
-    public int getFailedImages() { return failedImages; }
-    public void setFailedImages(int value) { this.failedImages = value; }
-
-    public Integer getCurrentImageIndex() { return currentImageIndex; }
-    public void setCurrentImageIndex(Integer value) { this.currentImageIndex = value; }
-
-    public String getCurrentImagePath() { return currentImagePath; }
-    public void setCurrentImagePath(String value) { this.currentImagePath = value; }
-
-    public String getStage() { return stage; }
-    public void setStage(String value) { this.stage = value; }
-
-    public int getCurrentStep() { return currentStep; }
-    public void setCurrentStep(int value) { this.currentStep = value; }
-
-    public int getTotalSteps() { return totalSteps; }
-    public void setTotalSteps(int value) { this.totalSteps = value; }
-
-    public String getProgressDetail() { return progressDetail; }
-    public void setProgressDetail(String value) { this.progressDetail = value; }
-
-    public String getErrorMessage() { return errorMessage; }
-    public void setErrorMessage(String value) { this.errorMessage = value; }
-
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant value) { this.createdAt = value; }
-
-    public Instant getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Instant value) { this.updatedAt = value; }
 }
