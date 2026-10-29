@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -167,6 +168,29 @@ public class BatchTranslationQueue {
         if (!registry.markSubmitted(job.getJobId())) {
             coordinator.cancelAcquire(job.getJobId());
             return;
+        }
+
+        if (!Objects.equals(job.getSourceLang(), "ja") || !Objects.equals(job.getTargetLang(), "en")) {
+            try {
+                commandService.sendAndWait(commandService.loadMangaModule(job.getSourceLang(),job.getTargetLang()),Duration.ofSeconds(180));
+            }catch (Exception e){
+                dispatching = false;
+                timedOut = true;
+
+                registry.fail(
+                        job.getJobId(),
+                        "Failed to submit translation command: " + rootMessage(e)
+                );
+
+                coordinator.markTimedOut(job.getJobId());
+
+                log.error(
+                        "Failed to submit translation command for job {}",
+                        job.getJobId(),
+                        e
+                );
+                return;
+            }
         }
 
         activeJobId = job.getJobId();

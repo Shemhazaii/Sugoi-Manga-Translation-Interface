@@ -55,11 +55,11 @@ public class SingleTranslationService {
 
         String originalFilename = file.getOriginalFilename();
         String extension = getAllowedExtension(originalFilename);
-        String jobId = "translation-" + UUID.randomUUID();
+        String jobId = "single-" + UUID.randomUUID();
 
         SingleTranslationJob job = new SingleTranslationJob(
                 jobId,
-                originalFilename == null ? "image" : originalFilename,
+                originalFilename,
                 sourceLang,
                 targetLang,
                 translator

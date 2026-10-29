@@ -219,7 +219,7 @@ public class SugoiInitializationService {
 
             long version = state.getTranslatorVersion();
 
-            sendAndWait(
+            commands.sendAndWait(
                     commands.loadTranslator(backend),
                     properties.getTranslatorTimeout()
             );
@@ -248,7 +248,7 @@ public class SugoiInitializationService {
 
             long version = state.getTranslatorVersion();
 
-            sendAndWait(
+            commands.sendAndWait(
                     commands.setTranslator(backend),
                     properties.getTranslatorTimeout()
             );
@@ -278,7 +278,7 @@ public class SugoiInitializationService {
     private JsonNode requestTranslatorStatus() throws Exception {
         long version = state.getTranslatorVersion();
 
-        sendAndWait(
+        commands.sendAndWait(
                 commands.getTranslatorStatus(),
                 properties.getTranslatorTimeout()
         );
@@ -319,7 +319,7 @@ public class SugoiInitializationService {
 
             long version = state.getMangaStatusVersion();
 
-            sendAndWait(
+            commands.sendAndWait(
                     commands.loadMangaModule(
                             properties.getSourceLang(),
                             properties.getTargetLang()
@@ -349,7 +349,7 @@ public class SugoiInitializationService {
     private JsonNode requestMangaStatus() throws Exception {
         long version = state.getMangaStatusVersion();
 
-        sendAndWait(
+        commands.sendAndWait(
                 commands.getMangaModuleStatus(),
                 properties.getMangaTimeout()
         );
@@ -427,29 +427,6 @@ public class SugoiInitializationService {
             throw new IllegalStateException(
                     "Manga module translator backend does not match "
                             + properties.getBackend()
-            );
-        }
-    }
-
-    private void sendAndWait(
-            CompletableFuture<Void> operation,
-            java.time.Duration timeout
-    ) throws Exception {
-        try {
-            operation.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
-        } catch (ExecutionException exception) {
-            Throwable cause = exception.getCause();
-            if (cause instanceof Exception causeException) {
-                throw causeException;
-            }
-            throw new IllegalStateException(
-                    "Sugoi WebSocket command failed",
-                    cause
-            );
-        } catch (TimeoutException exception) {
-            throw new TimeoutException(
-                    "Timed out sending Sugoi WebSocket command after "
-                            + timeout
             );
         }
     }

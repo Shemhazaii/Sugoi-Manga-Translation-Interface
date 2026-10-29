@@ -13,6 +13,7 @@ import tools.jackson.databind.JsonNode;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -20,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class SingleTranslationQueue {
 
-    private final SugoiStateService stateService;
     private final SingleTranslationPersistenceService persistence;
     private final SugoiTranslationCoordinator coordinator;
     private final SingleTranslationJobRegistry registry;
@@ -34,13 +34,12 @@ public class SingleTranslationQueue {
     private boolean activeTimedOut;
 
     public SingleTranslationQueue(
-            SugoiStateService stateService,
+            SugoiStateService stateService, SugoiCommandService commands,
             SingleTranslationPersistenceService persistence, SugoiTranslationCoordinator coordinator,
             SingleTranslationJobRegistry registry,
             SugoiCommandService commandService,
             @Value("${translation.single.timeout:5m}") Duration timeout
     ) {
-        this.stateService = stateService;
         this.persistence = persistence;
         this.coordinator = coordinator;
         this.registry = registry;
@@ -181,6 +180,30 @@ public class SingleTranslationQueue {
         }
         if (!coordinator.tryAcquire(job.getJobId(), "single")) {
             return;
+        }
+
+        if (!Objects.equals(job.getSourceLang(), "ja") || !Objects.equals(job.getTargetLang(), "en")) {
+            log.info("its different");
+            try {
+                commandService.sendAndWait(commandService.loadMangaModule(job.getSourceLang(),job.getTargetLang()),Duration.ofSeconds(180));
+            }catch (Exception e){
+                dispatching = false;
+                activeTimedOut = true;
+
+                registry.fail(
+                        job.getJobId(),
+                        "Failed to submit translation command: " + rootMessage(e)
+                );
+
+                coordinator.markTimedOut(job.getJobId());
+
+                log.error(
+                        "Failed to submit translation command for job {}",
+                        job.getJobId(),
+                        e
+                );
+                return;
+            }
         }
 
         if (!registry.markSubmitted(job.getJobId())) {

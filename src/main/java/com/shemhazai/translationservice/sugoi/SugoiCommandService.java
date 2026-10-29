@@ -7,6 +7,9 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Slf4j
 @Service
@@ -81,6 +84,30 @@ public class SugoiCommandService {
                 "output_folder", outputFolder
         ));
     }
+
+    public void sendAndWait(
+            CompletableFuture<Void> operation,
+            java.time.Duration timeout
+    ) throws Exception {
+        try {
+            operation.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (ExecutionException exception) {
+            Throwable cause = exception.getCause();
+            if (cause instanceof Exception causeException) {
+                throw causeException;
+            }
+            throw new IllegalStateException(
+                    "Sugoi WebSocket command failed",
+                    cause
+            );
+        } catch (TimeoutException exception) {
+            throw new TimeoutException(
+                    "Timed out sending Sugoi WebSocket command after "
+                            + timeout
+            );
+        }
+    }
+
 
     private CompletableFuture<Void> send(Map<String, Object> command) {
         try {
