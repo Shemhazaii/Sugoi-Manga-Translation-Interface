@@ -49,7 +49,23 @@ public class BatchTranslationJobRegistry {
     }
 
     public BatchTranslationJob getJob(String jobId) {
-        return jobs.get(jobId);
+
+        BatchTranslationJob cached = jobs.get(jobId);
+
+        if (cached != null) {
+            return cached;
+        }
+
+        return persistence.findEntity(jobId)
+                .map(persistence::restoreJob)
+                .map(job -> {
+                    BatchTranslationJob existing =
+                            jobs.putIfAbsent(jobId, job);
+
+
+                    return existing == null ? job : existing;
+                })
+                .orElse(null);
     }
 
 

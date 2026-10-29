@@ -52,9 +52,9 @@ translation:
   queue:
     poll-interval: 1000
   single:
-    timeout:5m
+    timeout:1d
   batch:
-    timeout: 30m
+    timeout: 1d
   storage:
     root: ${TRANSLATION_STORAGE_ROOT:/mnt/sugoi-files}
   cleanup:

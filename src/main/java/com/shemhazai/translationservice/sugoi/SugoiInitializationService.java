@@ -24,6 +24,12 @@ public class SugoiInitializationService {
     private final SugoiProperties connectionProperties;
     private final SugoiInitializationProperties properties;
 
+    private final AtomicBoolean initializationInProgress =
+            new AtomicBoolean(false);
+
+    private final AtomicBoolean recoveryRequested =
+            new AtomicBoolean(false);
+
     private final AtomicBoolean started = new AtomicBoolean(false);
 
     private volatile boolean initializationComplete = false;
@@ -50,7 +56,86 @@ public class SugoiInitializationService {
         CompletableFuture.runAsync(this::initializeSafely);
     }
 
+    @EventListener
+    public void onWebSocketReconnected(
+            SugoiWebSocketReconnectedEvent event
+    ) {
+        if (!started.get()) {
+            log.debug(
+                    "Ignoring reconnect event before application startup initialization"
+            );
+            return;
+        }
+
+        log.info(
+                "Sugoi WebSocket reconnected; re-initializing translator "
+                        + "and manga module"
+        );
+
+        CompletableFuture.runAsync(this::initializeSafely);
+    }
+
+    private final AtomicBoolean recoveryInProgress =
+            new AtomicBoolean(false);
+
+    public void recoverAfterReconnect() {
+        if (!recoveryInProgress.compareAndSet(false, true)) {
+            return;
+        }
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                initializationComplete = false;
+                failureReason = null;
+
+                log.info("Reinitializing Sugoi after WebSocket reconnect");
+
+                initialize();
+
+                initializationComplete = true;
+
+                log.info("Sugoi recovery initialization completed");
+
+            } catch (Exception exception) {
+                failureReason = rootMessage(exception);
+
+                log.error(
+                        "Sugoi recovery initialization failed: {}",
+                        failureReason,
+                        exception
+                );
+
+            } finally {
+                recoveryInProgress.set(false);
+            }
+        });
+    }
+
     private void initializeSafely() {
+        if (!initializationInProgress.compareAndSet(false, true)) {
+            log.info(
+                    "Sugoi initialization is already running; "
+                            + "queuing another initialization"
+            );
+            recoveryRequested.set(true);
+            return;
+        }
+
+        try {
+            doInitializeSafely();
+        } finally {
+            initializationInProgress.set(false);
+
+            if (recoveryRequested.getAndSet(false)) {
+                log.info(
+                        "Running queued Sugoi initialization after previous run"
+                );
+                CompletableFuture.runAsync(this::initializeSafely);
+            }
+        }
+    }
+
+    private void doInitializeSafely() {
         initializationComplete = false;
         failureReason = null;
 
@@ -78,8 +163,9 @@ public class SugoiInitializationService {
         }
 
         if (!isReady()) {
-            throw new IllegalStateException(
-                    "Sugoi initialization finished, but readiness checks failed"
+            log.warn(
+                    "Sugoi initialization finished, but readiness checks failed: {}",
+                    failureReason
             );
         }
     }
